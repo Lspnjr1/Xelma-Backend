@@ -39,6 +39,7 @@ import errorsRoutes from './routes/errors.routes';
 import corsDiagnosticsRoutes from './routes/admin-cors-diagnostics.routes';
 import deadLetterRoutes from './routes/admin-dead-letter.routes';
 import betAuditRoutes from './routes/admin-bet-audit.routes';
+import runtimeFlagsRoutes from './routes/admin-runtime-flags.routes';
 import healthRoutes from './routes/health';
 import statsRoutes from './routes/stats';
 import indexRoutes from './routes/index';
@@ -67,6 +68,7 @@ import { swaggerSpec } from './docs/openapi';
 import { hackathonSwaggerSpec } from './docs/hackathon-openapi';
 import config from './config';
 import logger from './utils/logger';
+import { noStoreHeaders } from './utils/http-cache';
 
 export type AppMode = 'full' | 'hackathon';
 
@@ -236,15 +238,15 @@ function mountApiRoutes(
   features: AppFeatures,
 ): void {
   if (features.auth) {
-    target.use('/auth', authRoutes);
+    target.use('/auth', noStoreHeaders, authRoutes);
   }
 
   target.use('/user', userRoutes);
   target.use('/rounds', roundsRoutes);
-  target.use('/bets', betsRoutes);
+  target.use('/bets', noStoreHeaders, betsRoutes);
 
   if (features.predictions) {
-    target.use('/predictions', predictionsRoutes);
+    target.use('/predictions', noStoreHeaders, predictionsRoutes);
   }
   if (features.education) {
     target.use('/education', educationRoutes);
@@ -271,6 +273,7 @@ function mountApiRoutes(
     target.use('/admin/cors-diagnostics', corsDiagnosticsRoutes);
     target.use('/admin/dead-letter', deadLetterRoutes);
     target.use('/admin/bet-audit', betAuditRoutes);
+    target.use('/admin/runtime-flags', runtimeFlagsRoutes);
   } else if (features.corsDiagnostics) {
     // In hackathon mode, mount CORS diagnostics independently when
     // ENABLE_CORS_DIAGNOSTICS is set. Auth/admin checks are still enforced
